@@ -1,0 +1,95 @@
+## Inserção de pessoa
+
+Receber parâmetros "name" e "facebook_id" e inserir o vértice no grafo (sem conexão).
+
+Exemplo:
+
+Request:
+
+  POST /api/person/
+
+
+  {
+    "name": "Cassiano",
+    "facebook_id": "321"
+  }
+
+Response:
+
+  HTTP CREATED 201
+
+-----------
+
+## Conexão de pessoas
+
+Receber o parâmetro "facebook_id" e criar conexão com o resource da URL.
+
+Exemplo, conectar facebook ID "123" a facebook ID "321":
+
+Request:
+
+  POST /api/person/123/friends/
+
+  {
+    "facebook_id": "321"
+  }
+
+Response:
+
+  HTTP CREATED 201
+
+-----------
+
+## Listagem de amigos
+
+Devolver uma lista com os amigos da pessoa selecionada. Exemplo para pessoa com
+
+Request:
+
+GET /api/person/123/friends/
+
+  {
+    "facebook_id": "123"
+  }
+
+Response:
+
+  HTTP OK 200
+
+  {
+    "objects": [
+      {
+        "name": "Renato",
+        "facebook_id": "321"
+      },
+      …
+    ]
+  }
+
+-----------
+
+## Recomendação de amigos
+
+Devolver uma lista com recomendação de amigos (algo como "você também deve conhecer...").
+
+Pelo exemplo do grafo desenhado, para o nó "Renato" (facebook ID "123") deve recomendar o "Cassiano" ("321").
+
+Exemplo:
+
+Request:
+
+  GET /api/person/123/friends/recommendations/
+
+Response:
+
+  HTTP OK 200
+
+  {
+    "objects": [
+      {
+        "name": "Cassiano",
+        "facebook_id": "321"
+      },
+      …
+    ]
+  }
