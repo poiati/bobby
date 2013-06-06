@@ -5,18 +5,11 @@ Person
  - name
  - facebookId
 
-Connection(facebookId1, facebookId2, TYPE) I
- - from
- - to
- - relation [KNOWS, SUGGESTED]
- # connect : void
-
 PersonRepository() I
  # create(name : String, facebookId : Integer) : void
+ # friendsFor(facebookId : Integer) : Set<Person>
+ # suggestionsFor(facebookId : Integer) : Set<Person>
 
 ConnectionManager() I
  # connectFriend(from, to) : void
  # suggestFriend(from, to) : void
-
-Finder() I
- # find(facebookId, relation) : List<Nodes>
