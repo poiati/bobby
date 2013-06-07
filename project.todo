@@ -1,3 +1,16 @@
+# Q-A
+    
+    - What to do if any facebook cd of a connection do not exists in the graph
+    - How to handle duplicated facebook id? Can I assume that will never happen?
+    - Manage transactions in the service?
+    - What to do if we try to connect already connected persons?
+
+# General
+
+    - Preprocessed Suggestions
+    - Log all actions
+    - REST
+
 ## Inserção de pessoa
 
 Receber parâmetros "name" e "facebook_id" e inserir o vértice no grafo (sem conexão).
@@ -13,6 +26,7 @@ Request:
     "name": "Cassiano",
     "facebook_id": "321"
   }
+
 
 Response:
 

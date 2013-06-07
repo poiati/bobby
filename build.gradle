@@ -1,6 +1,5 @@
 apply plugin: 'java'
 
-sourceCompatibility = 1.5
 version = '0.1'
 neo4Jversion = '2.0.0-M03'
 

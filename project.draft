@@ -1,15 +1,19 @@
 joao as Person with facebookId1
 jose as Person with facebookId2
 
+RelationType
+ - KNOWS
+ - SUGGESTED
+
 Person
  - name
  - facebookId
 
 PersonRepository() I
- # create(name : String, facebookId : Integer) : void
+ # create(person : Person) : void
  # friendsFor(facebookId : Integer) : Set<Person>
  # suggestionsFor(facebookId : Integer) : Set<Person>
 
 ConnectionManager() I
  # connectFriend(from, to) : void
- # suggestFriend(from, to) : void
+ # connectFriendSuggestion(from, to) : void
