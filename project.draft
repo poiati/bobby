@@ -1,22 +1,20 @@
 joao as Person with facebookId1
 jose as Person with facebookId2
 
+RelationType
+ - KNOWS
+ - SUGGESTED
+
 Person
  - name
  - facebookId
 
-Connection(facebookId1, facebookId2, TYPE) I
- - from
- - to
- - relation [KNOWS, SUGGESTED]
- # connect : void
-
 PersonRepository() I
- # create(name : String, facebookId : Integer) : void
+ # create(person : Person) : void
 
 ConnectionManager() I
  # connectFriend(from, to) : void
- # suggestFriend(from, to) : void
+ # connectFriendSuggestion(from, to) : void
 
-Finder() I
- # find(facebookId, relation) : List<Nodes>
+ConnectionResolver() I
+ # resolve(facebookId, relation) : List<Nodes>
