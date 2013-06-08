@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.Set;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -12,6 +14,12 @@ import org.neo4j.graphdb.Node;
 
 
 public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
+    public static final Person NED = new Person("Ned", 999);
+    public static final Person ROB = new Person("Rob", 111);
+    public static final Person ROBERT = new Person("Robert", 222);
+    public static final Person ARYA = new Person("Arya", 333);
+    public static final Person JAMES = new Person("James", 444);
+
     Neo4JPersonRepository personRepository;
     String name = "Ned";
     Integer facebookId = 999;
@@ -24,9 +32,44 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
 
     @Test
     public void testCreate() {
-        this.personRepository.create(new Person(name, facebookId));
+        this.personRepository.create(new Person(this.name, this.facebookId));
 
         Node userNode = this.getIndexedNode(facebookId);
         assertThat((String) userNode.getProperty(Neo4JPersonRepository.PROPERTY_NAME), is(this.name));
+    }
+
+    @Test
+    public void testFriendsFor() {
+        this.prepareDatabase();
+
+        Set<Person> friendsOfNed = this.personRepository.friendsFor(this.facebookId);
+
+        assertThat(friendsOfNed.size(), is(3));
+        assertThat(friendsOfNed, hasItems(ROB, ROBERT, ARYA));
+    }
+
+    @Test
+    public void testFriendsInverseRelation() {
+        this.prepareDatabase();
+
+        Set<Person> friendsOfArya = this.personRepository.friendsFor(ARYA.getFacebookId());
+
+        assertThat(friendsOfArya.size(), is(1));
+        assertThat(friendsOfArya, hasItems(NED));
+    }
+
+    // TODO This test is not isolated because of the usage of Neo4JPersonRepository.
+    private void prepareDatabase() {
+        PersonRepository personRepository = new Neo4JPersonRepository(this.graphDb);
+        personRepository.create(new Person("Ned", this.facebookId));
+        personRepository.create(ROB);
+        personRepository.create(ROBERT);
+        personRepository.create(ARYA);
+        personRepository.create(JAMES);
+
+        ConnectionManager connectionManager = new Neo4JConnectionManager(this.graphDb);
+        connectionManager.connectFriend(this.facebookId, ROB.getFacebookId());
+        connectionManager.connectFriend(this.facebookId, ROBERT.getFacebookId());
+        connectionManager.connectFriend(this.facebookId, ARYA.getFacebookId());
     }
 }

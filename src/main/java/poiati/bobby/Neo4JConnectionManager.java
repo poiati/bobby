@@ -3,17 +3,14 @@ package poiati.bobby;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.Transaction;
 
 
 // TODO Exception if node not found
 
-public class Neo4JConnectionManager implements ConnectionManager {
-    private final GraphDatabaseService graphDb;
-
+public class Neo4JConnectionManager extends Neo4JService implements ConnectionManager {
     public Neo4JConnectionManager(final GraphDatabaseService graphDb) {
-        this.graphDb = graphDb;
+        super(graphDb);
     }
 
     public void connectFriend(final Integer fromFacebookId, final Integer toFacebookId) {
@@ -39,10 +36,5 @@ public class Neo4JConnectionManager implements ConnectionManager {
         } finally {
             transaction.finish();
         }
-    }
-
-    private Node getIndexedNode(Integer facebookId) {
-        final Index<Node> index = this.graphDb.index().forNodes(Neo4JPersonRepository.INDEX_NAME);
-        return index.get(Neo4JPersonRepository.PROPERTY_FACEBOOKID, facebookId).getSingle();
     }
 }

@@ -4,6 +4,7 @@
     - How to handle duplicated facebook id? Can I assume that will never happen?
     - Manage transactions in the service?
     - What to do if we try to connect already connected persons?
+    - Assuming facebookId is an Integer
 
 # General
 
@@ -20,7 +21,6 @@ Exemplo:
 Request:
 
   POST /api/person/
-
 
   {
     "name": "Cassiano",
