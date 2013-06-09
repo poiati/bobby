@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'jetty'
 
 version = '0.1'
 neo4Jversion = '2.0.0-M03'

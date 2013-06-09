@@ -1,7 +1,7 @@
 package poiati.bobby;
 
 
-interface ConnectionManager {
+public interface ConnectionManager {
 
     void connectFriend(Integer fromFacebookId, Integer toFacebookId);
 

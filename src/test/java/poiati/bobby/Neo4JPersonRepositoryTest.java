@@ -58,10 +58,30 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
         assertThat(friendsOfArya, hasItems(NED));
     }
 
+    @Test
+    public void testSuggestionFor() {
+        this.prepareDatabase();
+
+        Set<Person> suggestionsForNed = this.personRepository.suggestionsFor(this.facebookId);
+
+        assertThat(suggestionsForNed.size(), is(1));
+        assertThat(suggestionsForNed, hasItems(JAMES));
+    }
+
+    @Test
+    public void testSuggestionForInverse() {
+        this.prepareDatabase();
+
+        Set<Person> suggestionsForJames = this.personRepository.suggestionsFor(JAMES.getFacebookId());
+
+        assertThat(suggestionsForJames.size(), is(1));
+        assertThat(suggestionsForJames, hasItems(NED));
+    }
+
     // TODO This test is not isolated because of the usage of Neo4JPersonRepository.
     private void prepareDatabase() {
         PersonRepository personRepository = new Neo4JPersonRepository(this.graphDb);
-        personRepository.create(new Person("Ned", this.facebookId));
+        personRepository.create(NED);
         personRepository.create(ROB);
         personRepository.create(ROBERT);
         personRepository.create(ARYA);
@@ -71,5 +91,6 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
         connectionManager.connectFriend(this.facebookId, ROB.getFacebookId());
         connectionManager.connectFriend(this.facebookId, ROBERT.getFacebookId());
         connectionManager.connectFriend(this.facebookId, ARYA.getFacebookId());
+        connectionManager.connectFriendSuggestion(this.facebookId, JAMES.getFacebookId());
     }
 }

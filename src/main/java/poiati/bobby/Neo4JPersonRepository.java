@@ -11,15 +11,20 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.graphdb.traversal.Evaluators;
 
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.Set;
 import java.util.HashSet;
 
 
+@Component
 class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
     public static final String PROPERTY_NAME = "name";
     public static final String PROPERTY_FACEBOOKID = "facebookId";
     public static final String INDEX_NAME = "persons";
 
+    @Autowired
     public Neo4JPersonRepository(final GraphDatabaseService graphDb) {
         super(graphDb);
     }
@@ -41,26 +46,32 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
         }
     }
 
-    // TODO Handle node not found (change exception type) and write test
     public Set<Person> friendsFor(final Integer facebookId) {
+        return this.connectionsFor(facebookId, ConnectionType.KNOWS);
+    }
+
+    public Set<Person> suggestionsFor(final Integer facebookId) {
+        return this.connectionsFor(facebookId, ConnectionType.SUGGESTED);
+    }
+
+    // TODO Handle node not found (change exception type) and write test
+    private Set<Person> connectionsFor(final Integer facebookId, final ConnectionType connectionType) {
         final Node personNode = this.getIndexedNode(facebookId);
-        System.out.println(facebookId);
         if (personNode == null) {
             throw new IllegalArgumentException();
         }
         final HashSet persons = new HashSet<Person>();
-        final Traverser traverser = friendsTraversalDescription().traverse(personNode);
+        final Traverser traverser = friendsTraversalDescription(connectionType).traverse(personNode);
         for (final Node node : traverser.nodes()) {
-            System.out.println(node.getProperty("name"));
             persons.add(unmarshal(node));
         }
         return persons;
     }
 
-    private TraversalDescription friendsTraversalDescription() {
+    private TraversalDescription friendsTraversalDescription(final ConnectionType connectionType) {
         return Traversal.description().
             breadthFirst().
-            relationships(ConnectionType.KNOWS).
+            relationships(connectionType).
             evaluator(Evaluators.excludeStartPosition()).
             evaluator(Evaluators.toDepth(1));
     }
