@@ -35,3 +35,8 @@ dependencies {
 test {
     systemProperties 'property': 'value'
 }
+
+task updateRecommendations(dependsOn: 'classes', type: JavaExec) {
+    main = 'poiati.bobby.UpdateRecommendationsJob'
+    classpath = sourceSets.main.runtimeClasspath
+}

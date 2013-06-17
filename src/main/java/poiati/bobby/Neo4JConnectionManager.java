@@ -65,6 +65,9 @@ public class Neo4JConnectionManager extends Neo4JService implements ConnectionMa
         for (final Node suggestionNode : traverser.nodes()) {
             if (!this.isSuggestionRelationshipPresent(node, suggestionNode)) {
                 node.createRelationshipTo(suggestionNode, ConnectionType.SUGGESTED);
+                if (logger.isInfoEnabled()) {
+                    logger.info("New Suggestion Between {} and {}", node.getPropertyValues(), suggestionNode.getPropertyValues());
+                }
             }
         }
     }
