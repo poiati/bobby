@@ -36,6 +36,6 @@ public class Person {
     }
 
     public String toString() {
-        return String.format("{0} < {1} >", this.name, this.facebookId);
+        return String.format("%s < %d >", this.name, this.facebookId);
     }
 }

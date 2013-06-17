@@ -17,4 +17,5 @@ public abstract class Neo4JService {
         final Index<Node> index = this.graphDb.index().forNodes(Neo4JPersonRepository.INDEX_NAME);
         return index.get(Neo4JPersonRepository.PROPERTY_FACEBOOKID, facebookId).getSingle();
     }
+
 }

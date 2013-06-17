@@ -17,9 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Component
 class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
+    final transient Logger logger = LoggerFactory.getLogger(Neo4JConnectionManager.class);
+
     public static final String PROPERTY_NAME = "name";
     public static final String PROPERTY_FACEBOOKID = "facebookId";
     public static final String INDEX_NAME = "persons";
@@ -30,8 +35,12 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
     }
 
     public void create(final Person person) {
+        if (person == null)
+            throw new IllegalArgumentException();
         final Transaction transaction = graphDb.beginTx();
         try {
+            this.checkIfFacebookIdAlreadyExists(person.getFacebookId());
+
             final Node personNode = this.graphDb.createNode();
             personNode.setProperty(PROPERTY_NAME, person.getName());
             personNode.setProperty(PROPERTY_FACEBOOKID, person.getFacebookId());
@@ -39,8 +48,14 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
             this.indexNode(personNode);
 
             transaction.success();
+
+            if (logger.isInfoEnabled()) {
+                logger.info("New Person Created: {}", person);
+            }
         } catch(final Exception e) {
             transaction.failure();
+            logger.error("Can't create person " + person, e);
+            throw e;
         } finally {
             transaction.finish();
         }
@@ -54,7 +69,12 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
         return this.connectionsFor(facebookId, ConnectionType.SUGGESTED);
     }
 
-    // TODO Handle node not found (change exception type) and write test
+    private void checkIfFacebookIdAlreadyExists(final Integer facebookId) {
+        if (this.getIndexedNode(facebookId) != null) {
+            throw new FacebookIdAlreadyExistsException(facebookId);
+        }
+    }
+
     private Set<Person> connectionsFor(final Integer facebookId, final ConnectionType connectionType) {
         final Node personNode = this.getIndexedNode(facebookId);
         if (personNode == null) {
@@ -65,6 +85,14 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
         for (final Node node : traverser.nodes()) {
             persons.add(unmarshal(node));
         }
+
+        if (logger.isInfoEnabled()) {
+            logger.info("Listing connections of type {} for facebook id {}. Result: {}",
+                    connectionType,
+                    facebookId,
+                    persons);
+        }
+
         return persons;
     }
 

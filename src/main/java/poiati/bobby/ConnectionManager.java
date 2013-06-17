@@ -7,4 +7,5 @@ public interface ConnectionManager {
 
     void connectFriendSuggestion(Integer fromFacebookId, Integer toFacebookId);
 
+    void updateSuggestions();
 }

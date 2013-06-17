@@ -14,12 +14,6 @@ import org.neo4j.graphdb.Node;
 
 
 public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
-    public static final Person NED = new Person("Ned", 999);
-    public static final Person ROB = new Person("Rob", 111);
-    public static final Person ROBERT = new Person("Robert", 222);
-    public static final Person ARYA = new Person("Arya", 333);
-    public static final Person JAMES = new Person("James", 444);
-
     Neo4JPersonRepository personRepository;
     String name = "Ned";
     Integer facebookId = 999;
@@ -36,6 +30,12 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
 
         Node userNode = this.getIndexedNode(facebookId);
         assertThat((String) userNode.getProperty(Neo4JPersonRepository.PROPERTY_NAME), is(this.name));
+    }
+
+    @Test(expected=poiati.bobby.FacebookIdAlreadyExistsException.class)
+    public void testCreateSameFacebookId() {
+        this.personRepository.create(new Person(this.name, this.facebookId));
+        this.personRepository.create(new Person(this.name, this.facebookId));
     }
 
     @Test

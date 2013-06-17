@@ -9,6 +9,13 @@ import org.neo4j.graphdb.index.Index;
 
 
 public class Neo4JIntegrationTestBase {
+    public static final Person NED = new Person("Ned", 999);
+    public static final Person ROB = new Person("Rob", 111);
+    public static final Person ROBERT = new Person("Robert", 222);
+    public static final Person ARYA = new Person("Arya", 333);
+    public static final Person JAMES = new Person("James", 444);
+    public static final Person TYRION = new Person("Tyrion", 555);
+
     GraphDatabaseService graphDb;
 
     public void setUp() {
