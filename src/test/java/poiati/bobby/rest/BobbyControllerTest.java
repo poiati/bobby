@@ -38,7 +38,6 @@ import poiati.bobby.Person;
 import poiati.bobby.FacebookIdAlreadyExistsException;
 import poiati.bobby.ResourceNotFoundException;
 
-// TODO Test edge cases
 // TODO DRY
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -102,6 +101,17 @@ public class BobbyControllerTest {
         ).andExpect(status().is(201));
 
         verify(this.connectionManager).connectFriend(321, 123);
+    }
+
+    @Test
+    public void testPostCreateConnectionResourceNotFound() throws Exception {
+        doThrow(new ResourceNotFoundException())
+            .when(this.connectionManager).connectFriend(321, 123);
+
+        this.doPost(
+            "/api/person/321/friends/", 
+            "{\"facebook_id\": " + this.facebookId + "}"
+        ).andExpect(status().is(400));
     }
 
     @Test

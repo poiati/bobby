@@ -43,7 +43,7 @@ public class BobbyController {
       this.connectionManager = connectionManager;
     }
 
-    @RequestMapping(value="/person/", method = RequestMethod.POST)
+    @RequestMapping(value="/person", method = RequestMethod.POST)
     public ResponseEntity<String> create(final @RequestBody String json) throws IOException {
         final JsonNode jsonMap = this.parseJson(json);
         final JsonNode nameNode = jsonMap.get("name");
@@ -65,16 +65,20 @@ public class BobbyController {
         return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value="/person/{facebookId}/friends/", method = RequestMethod.POST)
+    @RequestMapping(value="/person/{facebookId}/friends", method = RequestMethod.POST)
     public ResponseEntity<String> createConnection(final @PathVariable Integer facebookId, 
                                                    final @RequestBody String json) throws IOException {
         final JsonNode jsonMap = this.parseJson(json);
 
-        this.connectionManager.connectFriend(facebookId, jsonMap.get("facebook_id").getIntValue());
+        try {
+            this.connectionManager.connectFriend(facebookId, jsonMap.get("facebook_id").getIntValue());
+        } catch(final ResourceNotFoundException e) {
+            return this.badRequest();
+        }
         return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value="/person/{facebookId}/friends/", method = RequestMethod.GET)
+    @RequestMapping(value="/person/{facebookId}/friends", method = RequestMethod.GET)
     public ResponseEntity<String> friends(final @PathVariable Integer facebookId) throws IOException {
         try {
             final Set<Person> friends = this.personRepository.friendsFor(facebookId);
@@ -84,7 +88,7 @@ public class BobbyController {
         }
     }
 
-    @RequestMapping(value="/person/{facebookId}/friends/recommendations/", method = RequestMethod.GET)
+    @RequestMapping(value="/person/{facebookId}/friends/recommendations", method = RequestMethod.GET)
     public ResponseEntity<String> suggestions(final @PathVariable Integer facebookId) throws IOException {
         try {
             final Set<Person> suggestions = this.personRepository.suggestionsFor(facebookId);
@@ -94,7 +98,7 @@ public class BobbyController {
         }
     }
 
-    @RequestMapping(value="/recommendations/update/", method = RequestMethod.PUT)
+    @RequestMapping(value="/recommendations/update", method = RequestMethod.PUT)
     public ResponseEntity<String> updateRecommendations() throws IOException {
         this.connectionManager.updateSuggestions();
         return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.OK);

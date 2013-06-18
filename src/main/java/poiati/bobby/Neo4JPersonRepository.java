@@ -78,6 +78,9 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
     private Set<Person> connectionsFor(final Integer facebookId, final ConnectionType connectionType) {
         final Node personNode = this.getIndexedNode(facebookId);
         if (personNode == null) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Can't list friends of {} because it does not exists.", facebookId);
+            }
             throw new ResourceNotFoundException();
         }
         final HashSet persons = new HashSet<Person>();

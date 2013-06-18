@@ -88,7 +88,10 @@ public class Neo4JConnectionManager extends Neo4JService implements ConnectionMa
             final Node toNode = this.getIndexedNode(toFacebookId);
 
             if (fromNode == null || toNode == null) {
-                throw new IllegalStateException("One or both sides of the connection does not exists.");
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Can't connect nodes {} <> {} because one or both does not exists.");
+                }
+                throw new ResourceNotFoundException("One or both sides of the connection does not exists.");
             }
 
             fromNode.createRelationshipTo(toNode, connectionType);
