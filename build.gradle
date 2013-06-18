@@ -32,10 +32,6 @@ dependencies {
     testCompile 'com.jayway.jsonpath:json-path-assert:0.8.1'
 }
 
-test {
-    systemProperties 'property': 'value'
-}
-
 task updateRecommendations(dependsOn: 'classes', type: JavaExec) {
     main = 'poiati.bobby.UpdateRecommendationsJob'
     classpath = sourceSets.main.runtimeClasspath
