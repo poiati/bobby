@@ -78,7 +78,7 @@ class Neo4JPersonRepository extends Neo4JService implements PersonRepository {
     private Set<Person> connectionsFor(final Integer facebookId, final ConnectionType connectionType) {
         final Node personNode = this.getIndexedNode(facebookId);
         if (personNode == null) {
-            throw new IllegalArgumentException();
+            throw new ResourceNotFoundException();
         }
         final HashSet persons = new HashSet<Person>();
         final Traverser traverser = friendsTraversalDescription(connectionType).traverse(personNode);

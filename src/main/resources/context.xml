@@ -20,7 +20,7 @@
 
     <bean id="graphDb" factory-bean="graphDbFactory" factory-method="newEmbeddedDatabase">
       <constructor-arg>
-        <value>/var/neo4j/dev</value>
+        <value>/var/neo4j/bobby</value>
       </constructor-arg>
     </bean>
 </beans>

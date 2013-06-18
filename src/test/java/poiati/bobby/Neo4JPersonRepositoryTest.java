@@ -17,6 +17,7 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
     Neo4JPersonRepository personRepository;
     String name = "Ned";
     Integer facebookId = 999;
+    Integer inexistentFacebookId = 666;
 
     @Before
     public void setUp() {
@@ -56,6 +57,13 @@ public class Neo4JPersonRepositoryTest extends Neo4JIntegrationTestBase {
 
         assertThat(friendsOfArya.size(), is(1));
         assertThat(friendsOfArya, hasItems(NED));
+    }
+
+    @Test(expected=poiati.bobby.ResourceNotFoundException.class)
+    public void testFriendsForPersonNotFound() {
+        this.prepareDatabase();
+
+        Set<Person> friendsOfNed = this.personRepository.friendsFor(this.inexistentFacebookId);
     }
 
     @Test

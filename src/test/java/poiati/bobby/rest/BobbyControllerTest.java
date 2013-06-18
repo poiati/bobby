@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import poiati.bobby.PersonRepository;
 import poiati.bobby.ConnectionManager;
 import poiati.bobby.Person;
+import poiati.bobby.FacebookIdAlreadyExistsException;
+import poiati.bobby.ResourceNotFoundException;
 
 // TODO Test edge cases
 // TODO DRY
@@ -74,6 +76,25 @@ public class BobbyControllerTest {
     }
 
     @Test
+    public void testPostCreateInvalidJson() throws Exception {
+        this.doPost(
+            "/api/person/", 
+            "{\"facebook_id\": " + this.facebookId + "}"
+        ).andExpect(status().is(400));
+    }
+
+    @Test
+    public void testPostCreateSameFacebookId() throws Exception {
+        doThrow(new FacebookIdAlreadyExistsException(this.facebookId))
+            .when(this.personRepository).create(new Person(name, facebookId));
+
+        this.doPost(
+            "/api/person/", 
+            "{\"name\": \"" + this.name + "\", \"facebook_id\": " + this.facebookId + "}"
+        ).andExpect(status().is(400));
+    }
+
+    @Test
     public void testPostCreateConnection() throws Exception {
         this.doPost(
             "/api/person/321/friends/", 
@@ -94,7 +115,15 @@ public class BobbyControllerTest {
                 .value(hasItems("Tyrion", "James")))
             .andExpect(jsonPath("$.objects[*].facebook_id")
                 .value(hasItems(111, 222)));
+    }
 
+    @Test
+    public void testGetFriendsPersonNotFound() throws Exception {
+        when(this.personRepository.friendsFor(this.facebookId))
+            .thenThrow(new ResourceNotFoundException());
+
+        this.doGet("/api/person/123/friends/")
+            .andExpect(status().is(404));
     }
 
     @Test
@@ -113,12 +142,21 @@ public class BobbyControllerTest {
         when(this.personRepository.suggestionsFor(this.facebookId))
             .thenReturn(this.personsFixture());
 
-        this.doGet("/api/person/123/friends/recommendations")
+        this.doGet("/api/person/123/friends/recommendations/")
             .andExpect(status().is(200))
             .andExpect(jsonPath("$.objects[*].name")
                 .value(hasItems("Tyrion", "James")))
             .andExpect(jsonPath("$.objects[*].facebook_id")
                 .value(hasItems(111, 222)));
+    }
+
+    @Test
+    public void testGetSuggestionsNotFound() throws Exception {
+        when(this.personRepository.suggestionsFor(this.facebookId))
+            .thenThrow(new ResourceNotFoundException());
+
+        this.doGet("/api/person/123/friends/recommendations/")
+            .andExpect(status().is(404));
 
     }
 
@@ -127,10 +165,18 @@ public class BobbyControllerTest {
         when(this.personRepository.suggestionsFor(this.facebookId))
             .thenReturn(new HashSet());
 
-        this.doGet("/api/person/123/friends/recommendations")
+        this.doGet("/api/person/123/friends/recommendations/")
             .andExpect(status().is(200))
             .andExpect(jsonPath("$.objects").value(is(collectionWithSize(equalTo(0)))));
 
+    }
+
+    @Test
+    public void testUpdateRecommendations() throws Exception {
+        this.doPut("/api/recommendations/update/")
+            .andExpect(status().is(200));
+
+        verify(this.connectionManager).updateSuggestions();
     }
 
     private ResultActions doPost(String uri, String content) throws Exception {
@@ -143,6 +189,10 @@ public class BobbyControllerTest {
     private ResultActions doGet(String uri) throws Exception {
         return this.mockMvc.perform(get(uri)
                 .accept(MediaType.APPLICATION_JSON));
+    }
+
+    private ResultActions doPut(String uri) throws Exception {
+        return this.mockMvc.perform(put(uri));
     }
 
     private void mockCollaborators() {

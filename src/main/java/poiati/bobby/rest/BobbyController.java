@@ -4,6 +4,8 @@ package poiati.bobby.rest;
 import poiati.bobby.PersonRepository;
 import poiati.bobby.Person;
 import poiati.bobby.ConnectionManager;
+import poiati.bobby.FacebookIdAlreadyExistsException;
+import poiati.bobby.ResourceNotFoundException;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,10 +30,9 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
 
-// TODO REST Error Handle
 
 @Controller
-@RequestMapping(value="/api/person", headers = "Accept=application/json")
+@RequestMapping(value="/api", headers = "Accept=application/json")
 public class BobbyController {
     PersonRepository personRepository;
     ConnectionManager connectionManager;
@@ -42,18 +43,29 @@ public class BobbyController {
       this.connectionManager = connectionManager;
     }
 
-    @RequestMapping(value="/", method = RequestMethod.POST)
+    @RequestMapping(value="/person/", method = RequestMethod.POST)
     public ResponseEntity<String> create(final @RequestBody String json) throws IOException {
         final JsonNode jsonMap = this.parseJson(json);
-        System.out.println(jsonMap.get("facebook_id").getIntValue());
+        final JsonNode nameNode = jsonMap.get("name");
+        final JsonNode facebookIdNode = jsonMap.get("facebook_id");
 
-        this.personRepository.create(new Person(jsonMap.get("name").getTextValue(), 
-                                                jsonMap.get("facebook_id").getIntValue()));
+        if (nameNode == null || facebookIdNode == null) {
+            return this.badRequest();
+        }
+
+        try {
+            this.personRepository.create(new Person(nameNode.getTextValue(), 
+                                                    facebookIdNode.getIntValue()));
+        } catch(final IllegalArgumentException e) {
+            return this.badRequest();
+        } catch(final FacebookIdAlreadyExistsException e) {
+            return this.badRequest();
+        }
 
         return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value="/{facebookId}/friends/", method = RequestMethod.POST)
+    @RequestMapping(value="/person/{facebookId}/friends/", method = RequestMethod.POST)
     public ResponseEntity<String> createConnection(final @PathVariable Integer facebookId, 
                                                    final @RequestBody String json) throws IOException {
         final JsonNode jsonMap = this.parseJson(json);
@@ -62,16 +74,30 @@ public class BobbyController {
         return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value="/{facebookId}/friends/", method = RequestMethod.GET)
+    @RequestMapping(value="/person/{facebookId}/friends/", method = RequestMethod.GET)
     public ResponseEntity<String> friends(final @PathVariable Integer facebookId) throws IOException {
-        final Set<Person> friends = this.personRepository.friendsFor(facebookId);
-        return connections(friends);
+        try {
+            final Set<Person> friends = this.personRepository.friendsFor(facebookId);
+            return connections(friends);
+        } catch(final ResourceNotFoundException e) {
+            return this.notFound();
+        }
     }
 
-    @RequestMapping(value="/{facebookId}/friends/recommendations", method = RequestMethod.GET)
+    @RequestMapping(value="/person/{facebookId}/friends/recommendations/", method = RequestMethod.GET)
     public ResponseEntity<String> suggestions(final @PathVariable Integer facebookId) throws IOException {
-        final Set<Person> suggestions = this.personRepository.suggestionsFor(facebookId);
-        return connections(suggestions);
+        try {
+            final Set<Person> suggestions = this.personRepository.suggestionsFor(facebookId);
+            return connections(suggestions);
+        } catch(final ResourceNotFoundException e) {
+            return this.notFound();
+        }
+    }
+
+    @RequestMapping(value="/recommendations/update/", method = RequestMethod.PUT)
+    public ResponseEntity<String> updateRecommendations() throws IOException {
+        this.connectionManager.updateSuggestions();
+        return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.OK);
     }
 
     private ResponseEntity<String> connections(final Set<Person> connections) throws IOException {
@@ -85,5 +111,13 @@ public class BobbyController {
     private JsonNode parseJson(final String json) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(json, JsonNode.class);
+    }
+
+    private ResponseEntity<String> badRequest() {
+        return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<String> notFound() {
+        return new ResponseEntity<String>(new HttpHeaders(), HttpStatus.NOT_FOUND);
     }
 }
