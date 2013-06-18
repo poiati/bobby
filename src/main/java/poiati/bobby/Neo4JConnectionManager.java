@@ -38,6 +38,9 @@ public class Neo4JConnectionManager extends Neo4JService implements ConnectionMa
 
     public void updateSuggestions() {
         final Transaction transaction = graphDb.beginTx();
+        if (logger.isInfoEnabled()) {
+            logger.info("Started suggestions update.");
+        }
         try {
             this.traverseAllNodesAndUpdateSuggestions();
             transaction.success();
