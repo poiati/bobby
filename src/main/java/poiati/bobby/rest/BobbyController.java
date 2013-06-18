@@ -30,10 +30,15 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Controller
 @RequestMapping(value="/api", headers = "Accept=application/json")
 public class BobbyController {
+    final transient Logger logger = LoggerFactory.getLogger(BobbyController.class);
+
     PersonRepository personRepository;
     ConnectionManager connectionManager;
 
@@ -44,8 +49,14 @@ public class BobbyController {
     }
 
     @RequestMapping(value="/person", method = RequestMethod.POST)
-    public ResponseEntity<String> create(final @RequestBody String json) throws IOException {
-        final JsonNode jsonMap = this.parseJson(json);
+    public ResponseEntity<String> create(final @RequestBody String json) {
+        JsonNode jsonMap = null;
+        try {
+            jsonMap = this.parseJson(json);
+        } catch (final IOException e) {
+            logger.error("Error parsing json request", e);
+            return this.badRequest();
+        }
         final JsonNode nameNode = jsonMap.get("name");
         final JsonNode facebookIdNode = jsonMap.get("facebook_id");
 
@@ -68,7 +79,13 @@ public class BobbyController {
     @RequestMapping(value="/person/{facebookId}/friends", method = RequestMethod.POST)
     public ResponseEntity<String> createConnection(final @PathVariable Integer facebookId, 
                                                    final @RequestBody String json) throws IOException {
-        final JsonNode jsonMap = this.parseJson(json);
+        JsonNode jsonMap = null;
+        try {
+            jsonMap = this.parseJson(json);
+        } catch (final IOException e) {
+            logger.error("Error parsing json request", e);
+            return this.badRequest();
+        }
 
         try {
             this.connectionManager.connectFriend(facebookId, jsonMap.get("facebook_id").getIntValue());
